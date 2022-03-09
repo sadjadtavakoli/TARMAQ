@@ -55,7 +55,7 @@ public class SequenceDatabase {
     private ItemFactory<String> itemFactory = new ItemFactory<>();
     private List<String> itemConstraintStrings;
     private List<TrieNode> itemConstraints = new ArrayList<>();
-    private List<Map<String, Object>> rules = new ArrayList();
+    private List<Map<String, Object>> rules = new ArrayList<>();
     private int nSequences = 1;
     /**
      * Map where we keep the original length for all the sequences
@@ -189,7 +189,8 @@ public class SequenceDatabase {
                         Map<String, Object> rule = new HashMap<>();
                         rule.put("antecedent", intersections);
                         rule.put("consequent", item);
-                        rules.add(rule);
+                        if(!rules.contains(rule))
+                            rules.add(rule);
                     }
                     TrieNode node = frequentItems.get(item);
                     if (node == null) {

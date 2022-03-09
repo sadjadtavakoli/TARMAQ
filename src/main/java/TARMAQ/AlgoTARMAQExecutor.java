@@ -25,20 +25,21 @@ import TARMAQ.tries.TrieNode;
  */
 public class AlgoTARMAQExecutor {
 
-    
     /**
-     * @param itemConstraint     a list of strings/items as our item constraint
-     * @param filePath           sequences where is sequences as a string or sequences
-     *                           file path where they are stored.
-     * @param outputPath         file path to store the result. null if want to store in
-     *                           memory
-     * @param itemsFrequenciesPath the path in which each items frequency should be stored 
+     * @param itemConstraint       a list of strings/items as our item constraint
+     * @param filePath             sequences where is sequences as a string or
+     *                             sequences
+     *                             file path where they are stored.
+     * @param outputPath           file path to store the result. null if want to
+     *                             store in
+     *                             memory
+     * @param itemsFrequenciesPath the path in which each items frequency should be
+     *                             stored
      */
     public static void runFile(List<String> itemConstraint, String filePath, String outputPath)
             throws IOException {
 
-
-        // sequence reading and filtreing, and association rule creation 
+        // sequence reading and filtreing, and association rule creation
         AbstractionCreator abstractionCreator = AbstractionCreator_Qualitative.getInstance();
         IdListCreator idListCreator = IdListCreatorStandard_Map.getInstance();
 
@@ -48,10 +49,7 @@ public class AlgoTARMAQExecutor {
         // reset the stats about memory usage
         MemoryLogger.getInstance().reset();
 
-        associationRuleSupportComputation(sequenceDatabase);
-
-        finalResultRanking(sequenceDatabase);
-
+        associationRuleRanking(sequenceDatabase);
 
         // Search for frequent patterns: Finished
 
@@ -83,13 +81,13 @@ public class AlgoTARMAQExecutor {
         }
         runFile(itemConstraint, filePath, outputPath);
     }
-    
+
     /**
      * The actual method for extracting frequent sequences.
      *
      * @param database The original database
      */
-    public static void associationRuleSupportComputation(SequenceDatabase database) {
+    public static void associationRuleRanking(SequenceDatabase database) {
         // We get the initial trie whose children are the frequent 1-patterns
         List<Map<String, Object>> rules = database.getRules();
         Map<Item, TrieNode> frequentItems = database.getFrequentItems();
@@ -115,25 +113,21 @@ public class AlgoTARMAQExecutor {
             rule.put("support", unionSupport);
             rule.put("confidence", (double) unionSupport / antecedentSupport);
         }
-        database.setRules(rules);
-    }
-    
-    public static void finalResultRanking(SequenceDatabase database){
-        
+
         Comparator<Map<String, Object>> mapComparator = new Comparator<Map<String, Object>>() {
             public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-                Integer supportM1 = (int)m1.get("support");
-                Integer supportM2 = (int)m2.get("support");
+                Integer supportM1 = (int) m1.get("support");
+                Integer supportM2 = (int) m2.get("support");
                 int status = supportM2.compareTo(supportM1);
-                if (status == 0){
-                    Double confidenceM1 = (double)m1.get("confidence");
-                    Double confidenceM2 = (double)m2.get("confidence");       
+                if (status == 0) {
+                    Double confidenceM1 = (double) m1.get("confidence");
+                    Double confidenceM2 = (double) m2.get("confidence");
                     status = confidenceM2.compareTo(confidenceM1);
                 }
                 return status;
             }
         };
-
-        Collections.sort(database.getRules(), mapComparator);
+        Collections.sort(rules, mapComparator);
+        database.setRules(rules);
     }
 }
