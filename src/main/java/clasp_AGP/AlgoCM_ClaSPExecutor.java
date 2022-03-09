@@ -23,14 +23,13 @@ public class AlgoCM_ClaSPExecutor {
 
     /**
      * @param itemConstraint     a list of strings/items as our item constraint
-     * @param support            min support
      * @param filePath           sequences where is sequences as a string or sequences
      *                           file path where they are stored.
      * @param outputPath         file path to store the result. null if want to store in
      *                           memory
      * @param itemsFrequenciesPath the path in which each items frequency should be stored 
      */
-    public static List<String> runFile(List<String> itemConstraint, double support, String filePath, String outputPath, String itemsFrequenciesPath)
+    public static List<String> runFile(List<String> itemConstraint, String filePath, String outputPath)
             throws IOException {
 
         // Load a sequence database
@@ -38,8 +37,6 @@ public class AlgoCM_ClaSPExecutor {
 
         boolean keepPatterns = true;
         boolean verbose = true;
-        boolean findClosedPatterns = true;
-        boolean executePruningMethods = true;
         // if you set the following parameter to true, the sequence ids of the sequences
         // where
         // each pattern appears will be shown in the result
@@ -52,11 +49,10 @@ public class AlgoCM_ClaSPExecutor {
 
         sequenceDatabase.loadFile(filePath);
 
-        AlgoCM_ClaSP algorithm = new AlgoCM_ClaSP(support, abstractionCreator, findClosedPatterns,
-                executePruningMethods);
+        Algo_TARMAQ algorithm = new Algo_TARMAQ();
 
-        algorithm.runAlgorithm(sequenceDatabase, keepPatterns, verbose, outputPath, outputSequenceIdentifiers, itemsFrequenciesPath);
-        System.out.println("Minsup (relative) : " + support);
+        algorithm.runAlgorithm(sequenceDatabase, keepPatterns, outputPath, outputSequenceIdentifiers);
+        
         System.out.println(algorithm.getNumberOfFrequentPatterns() + " patterns found.");
 
         if (verbose && keepPatterns) {
@@ -64,13 +60,10 @@ public class AlgoCM_ClaSPExecutor {
         }
         return algorithm.getResutl();
 
-        // uncomment if we want to see the Trie graphically
-        // ShowTrie.showTree(algorithm.getFrequentAtomsTrie());
-
     }
 
-    public static List<String> runList(List<String> itemConstraint, double support, String[] sequences,
-            String outputPath, String itemsFrequenciesPath) throws IOException {
+    public static List<String> runList(List<String> itemConstraint, String[] sequences,
+            String outputPath) throws IOException {
 
         String filePath = "input.txt";
         StringBuilder sequencesString = new StringBuilder();
@@ -83,7 +76,7 @@ public class AlgoCM_ClaSPExecutor {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return runFile(itemConstraint, support, filePath, outputPath, itemsFrequenciesPath);
+        return runFile(itemConstraint, filePath, outputPath);
     }
 
     public static String fileToPath(String filename) throws UnsupportedEncodingException {

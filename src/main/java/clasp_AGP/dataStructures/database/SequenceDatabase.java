@@ -55,6 +55,7 @@ public class SequenceDatabase {
     private ItemFactory<String> itemFactory = new ItemFactory<>();
     private List<String> itemConstraintStrings;
     private List<TrieNode> itemConstraints = new ArrayList<>();
+    private List<List<List<Item>>> rules = new ArrayList();
     private int nSequences = 1;
     /**
      * Map where we keep the original length for all the sequences
@@ -136,8 +137,10 @@ public class SequenceDatabase {
      * @param integers
      */
     public int addSequence(String[] integers, int maxLength) {
+
         // sequence filtering
         List<String> itemConstraintCopy = new ArrayList<>(itemConstraintStrings);
+        List<Item> intersections = new ArrayList<>();
         itemConstraintCopy.retainAll(Arrays.asList(integers));
         if (itemConstraintCopy.size() < maxLength) {
             return maxLength;
@@ -152,10 +155,14 @@ public class SequenceDatabase {
         Sequence sequence = new Sequence(sequences.size());
         Itemset itemset = new Itemset();
         sequence.setID(nSequences);
-        int beginning = 0;
         List<Integer> sizeItemsetsList = new ArrayList<>();
 
-        for (int i = beginning; i < integers.length; i++) {
+        for (int i = 0; i < itemConstraintCopy.size(); i++) {
+            Item item = itemFactory.getItem(itemConstraintCopy.get(i));
+            intersections.add(item);
+        }
+
+        for (int i = 0; i < integers.length; i++) {
             if (integers[i].codePointAt(0) == '<') { // Timestamp
                 String value = integers[i].substring(1, integers[i].length() - 1);
                 timestamp = Long.parseLong(value);
@@ -175,8 +182,15 @@ public class SequenceDatabase {
             } else { // an item with the format : id(value) ou: id
                 int indexParentheseGauche = integers[i].indexOf("(");
                 if (indexParentheseGauche == -1) {
-                    // extract the value for an item
+
+                    // mine rules
                     Item item = itemFactory.getItem(integers[i]);
+                    if (!itemConstraintStrings.contains(integers[i])) {
+                        List<List<Item>> rule = new ArrayList<>();
+                        rule.add(intersections);
+                        rule.add(Arrays.asList(item));
+                        rules.add(rule);
+                    }
                     TrieNode node = frequentItems.get(item);
                     if (node == null) {
                         IDList idlist = idListCreator.create();
@@ -258,6 +272,10 @@ public class SequenceDatabase {
         return result;
     }
 
+    public List<List<List<Item>>> getRules() {
+        return this.rules;
+    }
+
     /**
      * Get the map that makes the matching between items and equivalence classes
      * 
@@ -311,7 +329,7 @@ public class SequenceDatabase {
         sequencesLengths = null;
     }
 
-    public void reset(){
+    public void reset() {
         frequentItems.clear();
         frequentItems = new HashMap<>();
         sequences.clear();
@@ -319,5 +337,6 @@ public class SequenceDatabase {
         itemFactory = new ItemFactory<>();
         itemConstraints = new ArrayList<>();
         this.nSequences = 1;
+        rules = new ArrayList<>();
     }
 }

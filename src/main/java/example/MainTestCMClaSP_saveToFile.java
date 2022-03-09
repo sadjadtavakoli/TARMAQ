@@ -17,7 +17,6 @@ public class MainTestCMClaSP_saveToFile {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        double support = 0.5;
         List<String> itemConstraint = Arrays.asList();
         String[] sequences = { 
             "usernameGenerator usernameValidator -1 usernameValidator emailValidator -1 -2"
@@ -36,6 +35,6 @@ public class MainTestCMClaSP_saveToFile {
             //  checkUniqueness -1 checkEmailUniqueness emailValidator -1 #SUP: 2"
         // AlgoCM_ClaSPExecutor.runFile(itemConstraint, support,
         // "contextPrefixSpan.txt", null);
-        System.out.println(AlgoCM_ClaSPExecutor.runList(itemConstraint, support, sequences, null, null));
+        System.out.println(AlgoCM_ClaSPExecutor.runList(itemConstraint, sequences, null));
     }
 }

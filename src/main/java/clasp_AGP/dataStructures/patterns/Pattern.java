@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
+import clasp_AGP.dataStructures.Item;
 import clasp_AGP.dataStructures.abstracciones.ItemAbstractionPair;
 import clasp_AGP.dataStructures.creators.AbstractionCreator;
 import clasp_AGP.idlists.IDList;
@@ -94,9 +95,6 @@ public class Pattern implements Comparable<Pattern> {
             result.append("\t(");
             result.append(appearingIn.size()).append(')');
             result.append("\t[");
-            // for (int i = 0; i < appearingIn.size(); i++) {
-            // result.append(getSupport()).append(", ");
-            // }
             result.deleteCharAt(result.length() - 1);
             result.deleteCharAt(result.length() - 1);
             result.append("]");
@@ -295,17 +293,17 @@ public class Pattern implements Comparable<Pattern> {
      * @param itemConstraints
      * @return the number of items in common
      */
-    public int getIntersectionsLength(List<TrieNode> itemConstraints) {
-        int length = 0;
+    public ArrayList<Item> getIntersectionsItems(List<TrieNode> itemConstraints) {
+        ArrayList<Item> intersection = new ArrayList<>();
         for (ItemAbstractionPair pair : elements) {
             for (TrieNode node : itemConstraints) {
                 if (pair.getItem().getId() == node.getPair().getItem().getId()) {
-                    length++;
+                    intersection.add(pair.getItem());
                     break;
                 }
             }
         }
-        return length;
+        return intersection;
     }
     @Override
     public boolean equals(Object o) {
