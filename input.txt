@@ -1,0 +1,4 @@
+a b c d e -1
+a g -1
+b c h z -1
+c d e -1

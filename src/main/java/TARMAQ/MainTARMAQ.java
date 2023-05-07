@@ -1,14 +1,13 @@
 package TARMAQ;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Example of how to use the algorithm ClaSP, saving the results in a given file
+ * Example of how to run TARMAQ
  *
- * @author agomariz
+ * @author sadjad
  */
 public class MainTARMAQ {
 
@@ -16,12 +15,11 @@ public class MainTARMAQ {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        String sequencesPath = args[0];
-        String distFilePath = args[1];
-        List<String> itemConstraint = Arrays.asList(args[2].split(","));
-        if ("-1".equals(itemConstraint.get(0))) {
-            itemConstraint = new ArrayList<>();
-        }
+        
+        String sequencesPath = "input.txt";
+        String distFilePath = "output.txt";
+        List<String> itemConstraint = Arrays.asList("a");
+
         Runtime rt = Runtime.getRuntime();
         long totalMem = rt.totalMemory();
         long maxMem = rt.maxMemory();

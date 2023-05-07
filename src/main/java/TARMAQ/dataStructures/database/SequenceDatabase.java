@@ -3,7 +3,6 @@ package TARMAQ.dataStructures.database;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -103,7 +102,8 @@ public class SequenceDatabase {
             while ((thisLine = myInput.readLine()) != null) {
                 // If the line is not a comment line
                 if (thisLine.charAt(0) != '#' && thisLine.charAt(0) != '%' && thisLine.charAt(0) != '@') {
-                    // we filter sequences, compute their intersections with the itemConstrains, compute the association rules and then add them to database. 
+                    // we filter sequences, compute their intersections with the itemConstrains,
+                    // compute the association rules and then add them to database.
                     maxLength = addSequence(thisLine.split(" "), maxLength);
                 }
             }
@@ -113,7 +113,7 @@ public class SequenceDatabase {
                 TrieNode nodo = frequentItems.get(frequentItem);
                 frequentItem.setQuantity(nodo.getChild().getIdList().getSupport());
 
-                // @SADJADRE
+                // @TODO
                 nodo.getChild().getIdList().setAppearingIn(nodo.getChild());
             }
             /*
@@ -134,27 +134,29 @@ public class SequenceDatabase {
     /**
      * Method that adds a sequence from a array of string
      *
-     * @param integers
+     * @param functions
      */
-    public int addSequence(String[] integers, int maxLength) { //TODO SADJAD must be two or three different functions. #refactor
+    public int addSequence(String[] functions, int maxLength) { // TODO must be two or three different functions. #refactor
 
         // sequence filtering
         List<String> itemConstraintCopy = new ArrayList<>(itemConstraintStrings);
         List<Item> intersections = new ArrayList<>();
-        itemConstraintCopy.retainAll(Arrays.asList(integers));
-        if (itemConstraintCopy.size() < maxLength) {
+        itemConstraintCopy.retainAll(Arrays.asList(functions));
+        if (itemConstraintCopy.size() < maxLength) { // keeps the maxlength of intresections to eliminates sequences with intersection less than this number 
+            System.out.println(maxLength);
+            System.out.println(itemConstraintCopy.size());
+            System.out.println(" - - - - ");
             return maxLength;
         }
         if (itemConstraintCopy.size() > maxLength) {
             maxLength = itemConstraintCopy.size();
             this.reset();
         }
-
         for (int i = 0; i < itemConstraintCopy.size(); i++) {
             Item item = itemFactory.getItem(itemConstraintCopy.get(i));
             intersections.add(item);
         }
-        
+
         ItemAbstractionPairCreator pairCreator = ItemAbstractionPairCreator.getInstance();
         long timestamp = -1;
         Sequence sequence = new Sequence(sequences.size());
@@ -162,34 +164,30 @@ public class SequenceDatabase {
         sequence.setID(nSequences);
         List<Integer> sizeItemsetsList = new ArrayList<>();
 
-        for (int i = 0; i < integers.length; i++) {
-            if (integers[i].codePointAt(0) == '<') { // Timestamp
-                String value = integers[i].substring(1, integers[i].length() - 1);
+        for (int i = 0; i < functions.length; i++) {
+            if (functions[i].codePointAt(0) == '<') { // Timestamp
+                String value = functions[i].substring(1, functions[i].length() - 1);
                 timestamp = Long.parseLong(value);
                 itemset.setTimestamp(timestamp);
-            } else if (integers[i].equals("-1")) { // End of an Itemset
+            } else if (functions[i].equals("-1")) { // End of an Itemset
                 timestamp = itemset.getTimestamp() + 1;
                 sequence.addItemset(itemset);
-                itemset = new Itemset();
-                itemset.setTimestamp(timestamp);
                 sizeItemsetsList.add(sequence.length());
-
-            } else if (integers[i].equals("-2")) { // End of a sequence
                 sequences.add(sequence);
                 nSequences++;
                 sequencesLengths.put(sequence.getId(), sequence.length());
                 sequenceItemsetSize.put(sequence.getId(), sizeItemsetsList);
             } else { // an item with the format : id(value) ou: id
-                int indexParentheseGauche = integers[i].indexOf("(");
+                int indexParentheseGauche = functions[i].indexOf("(");
                 if (indexParentheseGauche == -1) {
+                    Item item = itemFactory.getItem(functions[i]);
 
                     // mine rules
-                    Item item = itemFactory.getItem(integers[i]);
-                    if (!itemConstraintStrings.contains(integers[i])) {
+                    if (!intersections.isEmpty() && !itemConstraintStrings.contains(functions[i])) {
                         Map<String, Object> rule = new HashMap<>();
                         rule.put("antecedent", intersections);
                         rule.put("consequent", item);
-                        if(!rules.contains(rule))
+                        if (!rules.contains(rule))
                             rules.add(rule);
                     }
                     TrieNode node = frequentItems.get(item);
@@ -199,7 +197,7 @@ public class SequenceDatabase {
                                 pairCreator.getItemAbstractionPair(item, abstractionCreator.createDefaultAbstraction()),
                                 new Trie(null, idlist));
                         frequentItems.put(item, node);
-                        if (itemConstraintStrings.contains(integers[i])) {
+                        if (itemConstraintStrings.contains(functions[i])) {
                             itemConstraints.add(node);
                         }
                     }
@@ -281,10 +279,10 @@ public class SequenceDatabase {
         this.rules = rules;
     }
 
-    public String getStrinfiedRules(){
+    public String getStrinfiedRules() {
         StringBuilder r = new StringBuilder();
         r.append("[");
-        for (Map<String, Object> rule: rules) {
+        for (Map<String, Object> rule : rules) {
             r.append("{\"rule\":\"");
             r.append(rule.get("antecedent"));
             r.append(" => ");
@@ -296,10 +294,12 @@ public class SequenceDatabase {
             r.append(rule.get("confidence"));
             r.append("},");
         }
-        r.deleteCharAt(r.length()-1);
+        if(r.length()>1)
+            r.deleteCharAt(r.length() - 1);
         r.append("]");
         return r.toString();
     }
+
     /**
      * Get the map that makes the matching between items and equivalence classes
      * 
@@ -307,34 +307,6 @@ public class SequenceDatabase {
      */
     public Map<Item, TrieNode> getFrequentItems() {
         return frequentItems;
-    }
-
-    public void writeItemsFrequency(String targetFilePath) {
-        Set<Item> frequentItemsSet = frequentItems.keySet();
-        StringBuffer sb = new StringBuffer();
-        boolean first = true;
-        sb.append('{');
-        for (Item frequentItem : frequentItemsSet) {
-            if (first)
-                first = false;
-            else
-                sb.append(',');
-            sb.append("\"").append(frequentItem).append("\":").append(frequentItem.getQuantity());
-        }
-        sb.append('}');
-
-        if (targetFilePath != null) {
-
-            try (FileWriter file = new FileWriter(targetFilePath)) {
-                // We can write any JSONArray or JSONObject instance to the file
-                file.write(sb.toString());
-                file.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println(sb.toString());
-        }
     }
 
     public void clear() {
